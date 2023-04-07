@@ -1,27 +1,49 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.VisualScripting;
-using UnityEditor;
+﻿using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 namespace Madyasiwi.Game {
 
 
     public class AppStateController : MonoBehaviour {
 
-        [SerializeField]
-        public static string someValue;
+        private static readonly string PREFAB_PATH = "Prefabs/AppStateController";
 
 
         [RuntimeInitializeOnLoadMethod]
-        private static void Init() {
-            // Instantiate self
-            var prefab = Resources.Load("Prefabs/AppStateController");
-            if (prefab != null) {
-                var instance = Instantiate(prefab, null, true);
-                instance.name = nameof(AppStateController);
-                DontDestroyOnLoad(instance);
+        public static void Init() {
+            SceneManager.sceneLoaded += (scene, mode) => {
+                ValidateCurrentScene();
+            };
+            ValidateCurrentScene();
+        }
+
+
+        private static void ValidateCurrentScene() {
+            var descriptor = GameObject.FindObjectOfType<SceneDescriptor>(true);
+            if (descriptor == null) {
+                return;
             }
+            if (!descriptor.isManagedByAppState) {
+                return;
+            }
+            Install();
+        }
+
+
+        public static void Install() {
+            var instance = GameObject.FindObjectOfType<AppStateController>(true);
+            if (instance != null) {
+                // Already exists
+                return;
+            }
+            var prefab = Resources.Load(PREFAB_PATH);
+            if (prefab == null) {
+                return;
+            }
+            var newInstance = Instantiate(prefab, null, true);
+            newInstance.name = nameof(AppStateController);
+            DontDestroyOnLoad(newInstance);
         }
     }
 }
