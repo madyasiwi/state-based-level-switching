@@ -10,52 +10,38 @@ using Madyasiwi.Game;
 public class LevelSwitchTests {
 
 
-    [SetUp]
-    public void SetUp() {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        var varName = "isResourceLoaded";
-        Variables.Application.Set(varName, true);
-        Variables.Application.Serialize();
+    [UnityTest, Order(100)]
+    public IEnumerator AutoSwitchTest() {
+        // Set to the default value
+        Variables.Application.Set("isResourceLoaded", false);
+        // Wait for application variable to be "flushed"
+        yield return null;
+        SceneManager.LoadSceneAsync("Level");
+        yield return new WaitForSeconds(.5f);
+        Assert.AreEqual("Loading", SceneManager.GetActiveScene().name);
     }
 
 
-    [TearDown]
-    public void TearDown() {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
-        Debug.Log($"Scene {scene.name} loaded");
-    }
-
-
-    [UnityTest]
-    public IEnumerator LevelSwitchPreloadTest() {
-        bool sceneLoaded = false;
-        SceneManager.sceneLoaded += (scene, mode) => {
-            sceneLoaded = true;
-        };
-        var sceneName = "Level";
-        SceneManager.LoadScene(sceneName);
-        while (!sceneLoaded) {
-            yield return null;
-        }
+    [UnityTest, Order(200)]
+    public IEnumerator PreloadTest() {
+        // Mark resource as loaded
+        Variables.Application.Set("isResourceLoaded", true);
+        // Wait for application variable to be "flushed"
+        yield return null;
+        SceneManager.LoadSceneAsync("Level");
+        yield return new WaitForSeconds(.5f);
         Assert.AreEqual("Level", SceneManager.GetActiveScene().name);
     }
 
 
-    [UnityTest]
-    public IEnumerator LevelSwitchTest2() {
-        bool sceneLoaded = false;
-        SceneManager.sceneLoaded += (scene, mode) => {
-            sceneLoaded = true;
-        };
-        var sceneName = "Level";
-        SceneManager.LoadScene(sceneName);
-        while (!sceneLoaded) {
-            yield return null;
-        }
+    [UnityTest, Order(300)]
+    public IEnumerator LoadingTest() {
+        // Set to the default value
+        Variables.Application.Set("isResourceLoaded", false);
+        // Wait for application variable to be "flushed"
+        yield return null;
+        SceneManager.LoadSceneAsync("Loading");
+        yield return new WaitForSeconds(.5f);
         Assert.AreEqual("Loading", SceneManager.GetActiveScene().name);
     }
 }
